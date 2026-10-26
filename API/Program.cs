@@ -1,4 +1,8 @@
 using API.Data;
+using API.Models;
+using API.Repositories;
+using API.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +21,11 @@ builder.Services.AddDbContext<AppDbContext>((sp, options) =>
     options.UseNpgsql(connectionString);
 });
 
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+ 
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -27,6 +36,7 @@ var app = builder.Build();
 //{
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.MapControllers();
 //}
 
 app.UseHttpsRedirection();
