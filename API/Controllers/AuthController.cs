@@ -1,6 +1,7 @@
 using API.Dtos;
 using API.Exceptions;
 using API.Services;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers;
@@ -25,4 +26,21 @@ public class AuthController(IAuthService authService) : ControllerBase
             return Problem(statusCode: StatusCodes.Status409Conflict, title: "Email deja utilise");
         }
     }
+
+    [HttpPost("login")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Login(LoginRequest request, CancellationToken ct)
+    {
+        try
+        {
+            var token = await authService.LoginAsync(request, ct);
+            return StatusCode(StatusCodes.Status200OK, token);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Problem(statusCode: StatusCodes.Status404NotFound, title: "Email ou mot de passe incorrect");
+        }
+    }
+    
 }

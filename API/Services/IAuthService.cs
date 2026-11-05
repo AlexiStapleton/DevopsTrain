@@ -4,5 +4,6 @@ namespace API.Services;
 
 public interface IAuthService
 {
-    Task<UserResponse> RegisterAsync(RegisterRequest request, CancellationToken ct);
+    Task<LoginResult> RegisterAsync(RegisterRequest request, CancellationToken ct);
+    Task<LoginResult> LoginAsync(LoginRequest request, CancellationToken ct);
 }
