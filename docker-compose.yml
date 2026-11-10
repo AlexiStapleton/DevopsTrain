@@ -6,6 +6,15 @@ services:
     depends_on: 
       db:
         condition: service_healthy
+
+  frontend:
+    build:
+      context: ./FrontEnd
+      dockerfile: Dockerfile
+    ports: [ "3000:80" ]
+    depends_on:
+      - api
+    
   db:
     image: postgres:16
     container_name: devops-train
