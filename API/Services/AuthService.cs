@@ -1,15 +1,19 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using API.Dtos;
 using API.Exceptions;
 using API.Models;
 using API.Repositories;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 
 namespace API.Services;
 
 
-public class AuthService(IUserRepository users, IPasswordHasher<User> passwordHasher) : IAuthService
+public class AuthService(IUserRepository users, IPasswordHasher<User> passwordHasher, ITokenService tokens) : IAuthService
 {
-    public async Task<UserResponse> RegisterAsync(RegisterRequest request, CancellationToken ct)
+    public async Task<LoginResult> RegisterAsync(RegisterRequest request, CancellationToken ct)
     {
         var email = request.Email.Trim().ToLowerInvariant();
  
@@ -29,14 +33,25 @@ public class AuthService(IUserRepository users, IPasswordHasher<User> passwordHa
         user.PasswordHash = passwordHasher.HashPassword(user, request.Password);
  
         await users.AddAsync(user, ct);
+        
+        return new LoginResult(LoginStatus.Success, tokens.CreateToken(user));
+    }
+
+    public async Task<LoginResult> LoginAsync(LoginRequest request, CancellationToken ct)
+    {
+        var email = request.Email.Trim().ToLowerInvariant();
+        var user = await users.FindByEmailAsync(email, ct);
  
-        return new UserResponse
+        if (user is null)
         {
-            Id = user.Id,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Email = user.Email,
-            CreatedAt = user.CreatedAt
-        };
+            throw new UnauthorizedAccessException();
+        }
+ 
+        var verification = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
+        if (verification == PasswordVerificationResult.Failed)
+            throw new UnauthorizedAccessException();
+ 
+        // SuccessRehashNeeded = mot de passe correct, hash a regenerer plus tard : on l'accepte
+        return new LoginResult(LoginStatus.Success, tokens.CreateToken(user));
     }
 }
