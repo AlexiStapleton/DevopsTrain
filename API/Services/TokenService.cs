@@ -21,7 +21,7 @@ public class TokenService(IOptions<JwtOptions> options, TimeProvider clock) : IT
             new Claim(JwtRegisteredClaimNames.Sub, user.Email),
             new Claim("userId", user.Id.ToString()),
             new Claim("lastname", user.LastName),
-            new Claim("login", user.FirstName),
+            new Claim("firstname", user.FirstName),
             new Claim("email", user.Email),
             new Claim("createdAt", user.CreatedAt.ToLongDateString()),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
@@ -31,7 +31,7 @@ public class TokenService(IOptions<JwtOptions> options, TimeProvider clock) : IT
             issuer: jwt.Issuer,
             audience: jwt.Audience,
             claims: claims,
-            expires: clock.GetUtcNow().UtcDateTime.AddMinutes(30), // ✅ UtcNow au lieu de Now
+            expires: clock.GetUtcNow().UtcDateTime.AddMinutes(30), 
             signingCredentials: credentials
         );
 

@@ -10,8 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@types/react-router-dom": "^5.3.3",
+    "axios": "^1.21.1",
+    "bootstrap": "^4.6.0",
+    "formik": "^2.4.9",
     "react": "^19.3.1",
-    "react-dom": "^19.3.1"
+    "react-dom": "^19.3.1",
+    "react-router-dom": "^7.18.5",
+    "yup": "^1.7.1"
   },
   "devDependencies": {
     "@babel/core": "^7.29.7",

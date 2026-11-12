@@ -1,122 +1,104 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { Component } from "react";
+import { Routes, Route, Link } from "react-router-dom";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "./App.css";
 
-function App() {
-  const [count, setCount] = useState(0)
+import AuthService from "./Services/auth.service";
+import type IUser from './Model/user.type';
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
 
-      <div className="ticks"></div>
+import Login from "./components/login.component";
+import Register from "./components/register.component";
+import Me from "./components/me.component";
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+import EventBus from "./common/EventBus";
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+type Props = {};
+
+type State = {
+    currentUser: IUser | undefined
 }
 
-export default App
+class App extends Component<Props, State> {
+    constructor(props: Props) {
+        super(props);
+        this.logOut = this.logOut.bind(this);
+        this.state = {
+            currentUser: undefined,
+        };
+    }
+
+    componentDidMount() {
+        this.refreshUser()
+    }
+
+    refreshUser = () => {
+        this.setState({ currentUser: AuthService.getCurrentUser() ?? undefined });
+    };
+    
+    componentWillUnmount() {
+        EventBus.remove("logout", this.logOut);
+    }
+
+    logOut() {
+        AuthService.logout();
+        this.setState({
+            currentUser: undefined,
+        });
+    }
+
+    render() {
+        const { currentUser } = this.state;
+        return (
+            <div>
+                <nav className="navbar navbar-expand navbar-dark bg-dark">
+                    <Link to={"/"} className="navbar-brand">
+                        yeah
+                    </Link>
+
+                    {currentUser ? (
+                        <div className="navbar-nav ml-auto">
+                            <li className="nav-item">
+                                <Link to={"/me"} className="nav-link">
+                                    {currentUser.firstName}
+                                </Link>
+                            </li>
+                            <li className="nav-item">
+                                <a href="/login" className="nav-link" onClick={this.logOut}>
+                                    LogOut
+                                </a>
+                            </li>
+                        </div>
+                    ) : (
+                        <div className="navbar-nav ml-auto">
+                            <li className="nav-item">
+                                <Link to={"/login"} className="nav-link">
+                                    Login
+                                </Link>
+                            </li>
+
+                            <li className="nav-item">
+                                <Link to={"/register"} className="nav-link">
+                                    Sign Up
+                                </Link>
+                            </li>
+                        </div>
+                    )}
+                </nav>
+
+                <div className="container mt-3">
+                    <Routes>
+                        <Route path="/" element={<Me />} />
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/register" element={<Register />} />
+                        <Route path="/me" element={<Me />} />
+                    </Routes>
+                </div>
+
+                {/*{ <AuthVerify logOut={this.logOut}/> }*/}
+            </div>
+        );
+    }
+}
+
+export default App;
